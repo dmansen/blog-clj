@@ -1,5 +1,5 @@
 (ns blog.sql
-  (:require [clojure.contrib.sql :as sql]))
+  (:require [clojure.java.jdbc :as sql]))
 
 ; Give the sql library all the information about the db
 ; to be used in transactions
@@ -10,15 +10,60 @@
 
 (. Class (forName "org.sqlite.JDBC")) ; Initialize the JDBC driver
 
+(defn make-where
+  [record]
+  (if (empty? record)
+    " 1 = 1"
+    (loop [rec record
+           current-query ""]
+      (if (empty? rec)
+        current-query
+        (let [[key val] (first rec)]
+          (recur (next rec)
+                 (str
+                  current-query
+                  (if (empty? current-query)
+                    ""
+                    " AND ")
+                  " "
+                  (name key)
+                  " = "
+                  (if (string? val)
+                    (str "\"" val "\"")
+                    val))))))))
+
 (defn db-create
   "Creates the table for this model"
   []
-  (sql/create-table
-   :something
-   [:id :int "PRIMARY KEY"]
-   [:name "varchar(32)"]))
+  (sql/with-connection
+    db
+    (sql/create-table
+     :posts
+     [:id :integer "PRIMARY KEY"]
+     [:name "varchar(128)"]
+     [:content "text"])))
 
-(sql/with-connection
-  db
-  (sql/transaction
-   (db-create)))
+(defn table-drop
+  "Drops the table"
+  [table]
+  (sql/with-connection
+    db
+    (sql/drop-table
+     (keyword table))))
+
+(defn get-record
+  [table record]
+  (sql/with-connection
+    db
+    (sql/transaction
+     (sql/with-query-results res
+       [(str "SELECT * FROM " (name table) " WHERE " (make-where record))]
+       (into [] res)))))
+
+(defn create-post
+  [record]
+  (sql/with-connection
+    db
+    (sql/insert-record
+     :posts
+     record)))
