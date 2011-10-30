@@ -7,16 +7,11 @@
             [compojure.handler :as handler]
             [compojure.response :as response]))
 
-(defn load-post
-  "Loads a post, stupidly. Just a quick helper."
-  [file]
-  (slurp (str "/home/derek/code/clojure/blog-clj/resources/public/posts/" file ".md")))
-
 (defroutes main-routes
   (GET "/" [] (index-page))
   (GET "/cool" [] (cool-page))
   (GET "/post/:name" [name] (get-post (:content
-                                       (first (get-record :posts {:name name})))))
+                                       (first (get-record :posts [:content] {:name name})))))
   (route/resources "/")
   (route/not-found "Page not found"))
 

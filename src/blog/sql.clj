@@ -13,16 +13,18 @@
 (defn make-where
   [record]
   (if (empty? record)
-    " 1 = 1"
-    (loop [rec record
-           current-query ""]
+    ""
+    (loop [add-and true
+           rec record
+           current-query " WHERE "]
       (if (empty? rec)
         current-query
         (let [[key val] (first rec)]
-          (recur (next rec)
+          (recur true
+                 (next rec)
                  (str
                   current-query
-                  (if (empty? current-query)
+                  (if add-and
                     ""
                     " AND ")
                   " "
@@ -31,6 +33,20 @@
                   (if (string? val)
                     (str "\"" val "\"")
                     val))))))))
+
+(defn make-fields
+  [fields]
+  (loop [add-comma false
+         rec fields
+         current-query ""]
+    (if (empty? rec)
+      current-query
+      (recur true
+             (next rec)
+             (str current-query (if add-comma
+                    ","
+                    "")
+                  (name (first rec)))))))
 
 (defn db-create
   "Creates the table for this model"
@@ -52,12 +68,12 @@
      (keyword table))))
 
 (defn get-record
-  [table record]
+  [table fields record]
   (sql/with-connection
     db
     (sql/transaction
      (sql/with-query-results res
-       [(str "SELECT * FROM " (name table) " WHERE " (make-where record))]
+       [(str "SELECT " (make-fields fields) " FROM " (name table) (make-where record))]
        (into [] res)))))
 
 (defn create-post
