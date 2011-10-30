@@ -1,6 +1,6 @@
 (ns blog.views
   (:use [hiccup core page-helpers]
-        [blog markdown]))
+        [blog sql]))
 
 ; Current version of jquery
 (def jquery-file
@@ -26,15 +26,15 @@
     [:h1 {:class "huger"} "The coolest page"]
     [:p "This is a paragraph! Built in clojure!"]]))
 
-(def base-dir "/home/derek/code/clojure/blog-clj")
-
-(defn get-post [file]
-  (let [text (slurp (str "resources/public/posts/" file ".md"))]
-    (html5
-     [:head
-      [:title "A Post"]
-      (include-css "/css/style.css")
-      (include-js jquery-file)
-      (include-js "/js/main.js")]
-     [:body
-      (markdown-to-html text true)])))
+(defn get-post [post-text]
+  (html5
+   [:head
+    [:title "A Post"]
+    (include-css "/css/style.css")
+    (include-js jquery-file)
+    (include-js "/js/showdown.js")
+    (include-js "/js/main.js")
+    (include-js "/js/post.js")]
+   [:body
+    [:div {:class "markdown"}
+     post-text]]))
