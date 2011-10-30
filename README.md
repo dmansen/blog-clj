@@ -1,7 +1,7 @@
-This is an example web application that uses [Ring][1] and
-[Compojure][2]. It demonstrates basic routing and embedded resources.
+This is an blog that uses [Ring][1] and
+[Compojure][2]. 
 
-To play around with this example project, you will first need
+To play around with this blog, you will first need
 [Leiningen][3] installed.
 
 Download the project dependencies with:
